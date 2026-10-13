@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ฟาร์มคำนามสุดสนุก 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#dff1c9; --ink:#1d3b2a; --card:#ffffff; --card-2:#f1f8ea; --card-ink:#1d3b2a; --line:#1d3b2a; --shadow:#173020;
+  --muted:#4f6b58; --leaf:#2f9e4f; --leaf-2:#46bd68; --leaf-d:#1f6b3a; --sun:#ffc83d; --chip:#fff1b8;
+  --good:#17803f; --good-bg:#d6f4df; --bad:#c43830; --bad-bg:#fde2df; --info-bg:#eaf6ff;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f2418; --ink:#e9f7e6; --card:#1b3a29; --card-2:#234733; --card-ink:#eef9ec; --line:#5aa877; --shadow:#06120b;
+    --muted:#a6c9b0; --chip:#33523b; --good:#6ee79a; --good-bg:#14452a; --bad:#ff9087; --bad-bg:#4a1f1d; --info-bg:#173246;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f2418; --ink:#e9f7e6; --card:#1b3a29; --card-2:#234733; --card-ink:#eef9ec; --line:#5aa877; --shadow:#06120b;
+  --muted:#a6c9b0; --chip:#33523b; --good:#6ee79a; --good-bg:#14452a; --bad:#ff9087; --bad-bg:#4a1f1d; --info-bg:#173246;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0; color:var(--ink);
+  background:var(--bg) radial-gradient(1200px 500px at 50% -10%, rgba(255,255,255,.55), transparent 70%);
+  font-family:'Sarabun','Noto Sans Thai',system-ui,sans-serif; font-size:17px; line-height:1.5;
+}
+.emoji{font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+button{font-family:inherit}
+
+/* ---------- layout ---------- */
+.app{max-width:1120px; margin:0 auto; padding:10px 12px 24px; display:grid; gap:12px; grid-template-columns:minmax(0,1fr)}
+.hud{grid-area:hud} .scene{grid-area:scene} .quiz{grid-area:quiz}
+@media (min-width:900px){
+  .app{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); grid-template-areas:"hud hud" "scene quiz"; gap:16px; padding:16px}
+}
+.card{
+  background:linear-gradient(180deg,var(--card),var(--card-2));
+  color:var(--card-ink); border:3px solid var(--line); border-radius:22px;
+  box-shadow:0 6px 0 var(--shadow), 0 14px 24px rgba(0,30,10,.18), inset 0 2px 0 rgba(255,255,255,.7);
+}
+
+/* ---------- HUD ---------- */
+.hud{padding:10px 12px 12px}
+.hud-top{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.brand{font-family:'Mali','Sarabun',sans-serif; font-weight:700; font-size:1.15rem; line-height:1.2}
+.brand small{display:block; font-family:'Sarabun',sans-serif; font-weight:400; font-size:.8rem; color:var(--muted)}
+.timer{
+  display:flex; align-items:center; gap:8px; padding:2px 16px; border-radius:999px;
+  background:linear-gradient(180deg,#ffe07a,#ffc02e); color:#3b2a00; border:3px solid #3b2a00;
+  box-shadow:0 4px 0 #3b2a00, inset 0 2px 0 rgba(255,255,255,.6);
+  font-weight:700; font-size:2.1rem; line-height:1.25; font-variant-numeric:tabular-nums;
+}
+.timer.low{background:linear-gradient(180deg,#ff7a70,#d6453d); color:#fff; border-color:#5b0f0b; box-shadow:0 4px 0 #5b0f0b}
+.timer.paused{opacity:.75}
+@media (prefers-reduced-motion:no-preference){ .timer.low{animation:pulse 1s ease-in-out infinite} }
+@keyframes pulse{50%{transform:scale(1.06)}}
+.bar{height:14px; border-radius:999px; background:rgba(127,127,127,.28); margin:10px 0; overflow:hidden; border:2px solid var(--line); box-shadow:inset 0 2px 3px rgba(0,0,0,.25)}
+.bar>i{display:block; height:100%; width:100%; background:linear-gradient(180deg,#7be08f,#2f9e4f); transition:width .3s linear}
+.bar.low>i{background:linear-gradient(180deg,#ff8f86,#c43830)}
+.chips{display:grid; grid-template-columns:repeat(5,1fr); gap:6px}
+.chip{position:relative; background:linear-gradient(180deg,#fff8d0,var(--chip)); color:#2c3a1d; border-radius:12px; padding:4px 4px; text-align:center; line-height:1.2; box-shadow:0 3px 0 rgba(0,0,0,.18)}
+:root[data-theme="dark"] .chip{color:#f2f7e8; background:var(--chip)}
+.chip span{display:block; font-size:.72rem; color:inherit; opacity:.75}
+.chip b{font-size:1.25rem}
+.chip.hit{background:linear-gradient(180deg,#ffd0cb,#ff9a92); color:#4a0f0a}
+.float{position:absolute; left:50%; top:-2px; transform:translateX(-50%); font-weight:700; font-size:1.2rem; color:var(--bad); pointer-events:none; text-shadow:0 1px 0 #fff}
+@media (prefers-reduced-motion:no-preference){ .float{animation:floatUp .9s ease-out forwards} }
+@keyframes floatUp{to{transform:translate(-50%,-30px); opacity:0}}
+
+/* ---------- scene ---------- */
+.scene{position:relative; overflow:hidden; min-height:270px; background:linear-gradient(180deg,#5db8f0 0%,#cdeeff 45%,#7ac55f 46%,#4c9f48 100%)}
+@media (min-width:900px){ .scene{min-height:500px} }
+.stage{position:absolute; inset:0}
+.stage canvas{display:block; width:100%; height:100%}
+.basket-chip{
+  position:absolute; top:10px; right:10px; z-index:3; display:flex; align-items:center; gap:6px;
+  background:linear-gradient(180deg,#fff,#eef7e6); color:#1d3b2a; border:3px solid #1d3b2a; border-radius:999px;
+  padding:0 12px 0 8px; font-weight:700; font-size:1.1rem; box-shadow:0 3px 0 #173020;
+}
+.basket-chip .ico{font-size:1.4rem; line-height:1.4}
+.lvl-ribbon{
+  position:absolute; top:10px; left:10px; z-index:3; padding:2px 12px; border-radius:999px;
+  background:linear-gradient(180deg,#7be08f,#2f9e4f); color:#fff; border:3px solid #173020; font-weight:700; font-size:.95rem; box-shadow:0 3px 0 #173020;
+}
+/* fallback (no WebGL) */
+.field{position:absolute; left:4%; right:4%; top:46%; bottom:10px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(2,1fr); gap:6px 10px; z-index:2}
+.plot{position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; min-height:0; border-radius:14px}
+.plot.active{background:rgba(255,255,255,.3); box-shadow:inset 0 0 0 3px var(--sun)}
+.plant{position:relative; z-index:1; margin-bottom:-6px; line-height:1; height:1.1em; font-size:clamp(22px,6.5vw,40px)}
+.soil{width:90%; height:min(38%,34px); border-radius:50%; background:repeating-linear-gradient(100deg,#6b3f22 0 8px,#7d4b2a 8px 16px); border:2px solid #4a2a15}
+
+/* ---------- quiz ---------- */
+.quiz{padding:14px}
+.qhead{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; flex-wrap:wrap}
+.qno{background:var(--chip); color:#2c3a1d; border-radius:999px; padding:0 12px; font-weight:700; font-size:.95rem}
+:root[data-theme="dark"] .qno{color:#f2f7e8}
+.lvbadge{font-family:'Mali','Sarabun',sans-serif; font-weight:700; color:var(--leaf-d)}
+:root[data-theme="dark"] .lvbadge{color:#8fe0a8}
+.pips{display:flex; gap:5px; margin:2px 0 8px}
+.pips i{flex:1; height:9px; border-radius:99px; background:rgba(127,127,127,.3); border:2px solid var(--line)}
+.pips i.done{background:linear-gradient(180deg,#7be08f,#2f9e4f)}
+.pips i.cur{background:var(--sun)}
+.qtext{font-size:1.28rem; font-weight:700; line-height:1.45; margin:4px 0 12px; min-height:3.9rem}
+.opts{display:grid; grid-template-columns:1fr 1fr; gap:9px}
+.opts.long{grid-template-columns:1fr}
+.opt{
+  display:flex; align-items:center; gap:10px; min-height:58px; padding:8px 12px; text-align:left;
+  background:linear-gradient(180deg,#ffffff,#e9f3e0); color:#1d3b2a; border:3px solid var(--line); border-radius:16px;
+  font-size:1.08rem; font-weight:600; line-height:1.35; cursor:pointer;
+  box-shadow:0 5px 0 var(--shadow), inset 0 2px 0 rgba(255,255,255,.9);
+  transition:transform .08s, box-shadow .08s, background .15s;
+}
+:root[data-theme="dark"] .opt{background:linear-gradient(180deg,#2c523b,#234733); color:#eef9ec}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .opt{background:linear-gradient(180deg,#2c523b,#234733); color:#eef9ec} }
+.opt .ltr{
+  flex:none; width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
+  background:radial-gradient(circle at 30% 25%,#7be08f,#2f9e4f 70%); color:#fff; font-weight:700; font-size:1rem; box-shadow:0 2px 0 rgba(0,0,0,.3);
+}
+.opt:hover:not(:disabled){filter:brightness(1.05)}
+.opt:active:not(:disabled){transform:translateY(5px); box-shadow:0 0 0 var(--shadow)}
+.opt:focus-visible{outline:4px solid var(--sun); outline-offset:2px}
+.opt.right{background:linear-gradient(180deg,#e6fbec,var(--good-bg)); border-color:var(--good); color:#0f4d27}
+.opt.wrong{background:linear-gradient(180deg,#ffeceb,var(--bad-bg)); border-color:var(--bad); color:#6b1511; text-decoration:line-through; opacity:.8}
+.opt.wrong .ltr{background:var(--bad)}
+.opt:disabled{cursor:default}
+@media (prefers-reduced-motion:no-preference){ .opt.wrong{animation:shake .35s} }
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.fb{margin-top:12px; border-radius:14px; padding:10px 12px; min-height:4.6rem; background:var(--info-bg); border:2px solid var(--line)}
+.fb.good{background:var(--good-bg); border-color:var(--good)}
+.fb.bad{background:var(--bad-bg); border-color:var(--bad)}
+.fb.good,.fb.bad{color:#1d2b20}
+:root[data-theme="dark"] .fb.good,:root[data-theme="dark"] .fb.bad{color:#f2f7e8}
+.fb strong{display:block; font-size:1.08rem}
+.fb span{display:block; color:var(--muted); font-size:.98rem}
+.fb.bad span,.fb.good span{color:inherit; opacity:.85}
+
+/* ---------- overlays ---------- */
+.overlay{
+  position:fixed; inset:0; z-index:20; display:flex; align-items:flex-start; justify-content:center; overflow:auto;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px);
+  background:rgba(12,32,20,.78);
+}
+.overlay[hidden]{display:none}
+.sheet{width:100%; max-width:660px; margin:auto; padding:18px 18px 20px}
+.sheet h1,.sheet h2{font-family:'Mali','Sarabun',sans-serif; margin:0 0 4px; line-height:1.25}
+.sheet h1{font-size:2rem}
+.sheet h2{font-size:1.6rem}
+.sheet p{margin:6px 0}
+.howto{list-style:none; padding:0; margin:12px 0}
+.howto li{display:flex; gap:10px; align-items:flex-start; padding:4px 0}
+.howto .emoji{font-size:1.4rem; line-height:1.4}
+details{border:2px solid var(--line); border-radius:14px; padding:8px 12px; margin:10px 0; background:var(--info-bg)}
+summary{cursor:pointer; font-weight:700}
+summary:focus-visible{outline:3px solid var(--sun); outline-offset:3px}
+dl{margin:8px 0 2px}
+dt{font-weight:700; margin-top:8px}
+dd{margin:0; color:var(--muted)}
+.btn{
+  display:block; width:100%; margin-top:14px; padding:12px 16px; font-size:1.25rem; font-weight:700; cursor:pointer;
+  background:linear-gradient(180deg,#5fd37b,#2a9446); color:#fff; border:3px solid var(--line); border-radius:18px;
+  box-shadow:0 6px 0 var(--shadow), inset 0 2px 0 rgba(255,255,255,.45); text-shadow:0 1px 0 rgba(0,0,0,.3);
+}
+.btn:active{transform:translateY(6px); box-shadow:0 0 0 var(--shadow)}
+.btn:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
+.score-big{text-align:center; margin:8px 0}
+.score-big b{display:block; font-family:'Mali','Sarabun',sans-serif; font-size:3.4rem; line-height:1.1; color:var(--leaf-d)}
+:root[data-theme="dark"] .score-big b{color:#8fe0a8}
+.stats{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:10px 0}
+.stat{background:linear-gradient(180deg,#fff8d0,var(--chip)); color:#2c3a1d; border-radius:12px; padding:6px 4px; text-align:center; line-height:1.2; box-shadow:0 3px 0 rgba(0,0,0,.18)}
+:root[data-theme="dark"] .stat{color:#f2f7e8; background:var(--chip)}
+.stat span{display:block; font-size:.78rem; opacity:.8}
+.stat b{font-size:1.4rem}
+.stars{text-align:center; font-size:2.6rem; letter-spacing:6px; color:rgba(127,127,127,.45); line-height:1.2}
+.stars .on{color:#ffb800; text-shadow:0 2px 0 #9a6a00}
+.crops{display:flex; flex-wrap:wrap; gap:6px 12px; justify-content:center; margin:8px 0; font-size:1.1rem}
+.crops .emoji{font-size:1.5rem}
+.cheer{text-align:center; font-weight:700; margin:8px 0 4px}
+.muted{color:var(--muted); font-size:.92rem; text-align:center}
+.tabs{display:flex; gap:8px; margin:12px 0 4px}
+.tab{flex:1; padding:6px 8px; font-weight:700; border:2px solid var(--line); border-radius:12px; background:var(--card); color:var(--card-ink); cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--leaf); color:#fff}
+.tab:focus-visible{outline:3px solid var(--sun); outline-offset:2px}
+.rv{border:2px solid var(--line); border-left-width:8px; border-radius:14px; padding:8px 12px; margin:8px 0}
+.rv.ok{border-left-color:var(--good)} .rv.retry{border-left-color:var(--sun)} .rv.pending{border-left-color:var(--muted)}
+.rv .st{font-size:.85rem; color:var(--muted); font-weight:600}
+.rv .q{font-weight:700}
+.rv .a b{color:var(--good)}
+:root[data-theme="dark"] .rv .a b{color:#6ee79a}
+.rv .e{color:var(--muted); font-size:.98rem}
+@media (max-width:420px){ .chip b{font-size:1.1rem} .chip span{font-size:.66rem} .timer{font-size:1.8rem} }
+</style>
+</head>
+<body>
+
+<main class="app" aria-label="เกมฟาร์มคำนามสุดสนุก">
+  <section class="card hud" aria-label="เวลาและคะแนน">
+    <div class="hud-top">
+      <div class="brand"><span class="emoji">🌾</span> ฟาร์มคำนาม 3D<small>ตอบถูก +1 · ตอบผิด −2</small></div>
+      <div class="timer" id="timer" role="timer" aria-label="เวลาที่เหลือ"><span class="emoji">⏱</span><span id="tt">10:00</span></div>
+    </div>
+    <div class="bar" id="bar" aria-hidden="true"><i id="barfill"></i></div>
+    <div class="chips">
+      <div class="chip"><span>ด่าน</span><b id="cLevel">1</b></div>
+      <div class="chip" id="chipScore"><span>คะแนน</span><b id="cScore">0</b></div>
+      <div class="chip"><span>ผลผลิต</span><b id="cHarv">0</b></div>
+      <div class="chip"><span>ตอบถูก</span><b id="cRight">0</b></div>
+      <div class="chip"><span>ตอบผิด</span><b id="cWrong">0</b></div>
+    </div>
+  </section>
+
+  <section class="card scene" id="scene" aria-label="ฟาร์ม 3 มิติ">
+    <div class="stage" id="stage"></div>
+    <div class="lvl-ribbon" id="ribbon">ด่าน 1</div>
+    <div class="basket-chip" aria-label="จำนวนผลผลิตในตะกร้า"><span class="ico emoji">🧺</span><span id="basketN">0</span></div>
+  </section>
+
+  <section class="card quiz" aria-label="คำถาม">
+    <div class="qhead"><span class="qno" id="qno">ข้อที่ 1/10</span><span class="lvbadge" id="lvbadge">ด่าน 1</span></div>
+    <div class="pips" id="pips" aria-hidden="true"></div>
+    <div class="qtext" id="qtext">กำลังเตรียมแปลง...</div>
+    <div class="opts" id="opts" role="group" aria-label="ตัวเลือกคำตอบ"></div>
+    <div class="fb" id="fb" aria-live="polite"><strong>เลือกคำตอบเพื่อรดน้ำต้นกล้า</strong><span>กดปุ่มคำตอบ หรือกดเลข 1–4 บนคีย์บอร์ดก็ได้</span></div>
+  </section>
+</main>
+
+<!-- start -->
+<div class="overlay" id="startOv">
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+    <h1 id="startTitle"><span class="emoji">🌾</span> ฟาร์มคำนามสุดสนุก 3D</h1>
+    <p>ทบทวนคำนาม 5 ประเภท ผ่านด่านที่ยากขึ้นเรื่อยๆ ไม่จำกัดจำนวนด่าน</p>
+    <ul class="howto">
+      <li><span class="emoji">🌱</span><span>เลือกคำตอบที่ถูกต้อง ตอบถูกได้ <b>+1 คะแนน</b> และเก็บผลผลิต 1 ชิ้นใส่ตะกร้า</span></li>
+      <li><span class="emoji">⚠️</span><span>ตอบผิดถูกหัก <b>2 คะแนน</b> (คะแนนไม่ต่ำกว่า 0) แต่มีคำใบ้ให้ และลองใหม่ได้</span></li>
+      <li><span class="emoji">🏆</span><span>แต่ละด่านมี <b>10 ข้อ</b> ผ่านแล้วด่านต่อไปจะยากขึ้น จากง่ายไปยาก</span></li>
+      <li><span class="emoji">⏱</span><span>เวลารวม 10 นาที (เวลาหยุดนับตอนดูสรุปผลแต่ละด่าน) ตอบให้ได้ไกลที่สุด!</span></li>
+    </ul>
+    <details>
+      <summary>ทบทวนก่อนเล่น: คำนาม 5 ประเภท</summary>
+      <dl>
+        <dt>สามานยนาม</dt><dd>ชื่อเรียกทั่วไป เช่น ครู แมว โต๊ะ แม่น้ำ</dd>
+        <dt>วิสามานยนาม</dt><dd>ชื่อเฉพาะ เช่น สมชาย เชียงใหม่ แม่น้ำโขง</dd>
+        <dt>สมุหนาม</dt><dd>ชื่อกลุ่มหรือหมู่ เช่น ฝูง โขลง คณะ</dd>
+        <dt>ลักษณนาม</dt><dd>คำที่ตามหลังจำนวนนับเพื่อบอกลักษณะ เช่น ตัว คัน หลัง</dd>
+        <dt>อาการนาม</dt><dd>“การ” หรือ “ความ” + กริยา/วิเศษณ์ เช่น การอ่าน ความสุข</dd>
+      </dl>
+    </details>
+    <button class="btn" id="startBtn" type="button">เริ่มปลูกเลย!</button>
+  </div>
+</div>
+
+<!-- level complete -->
+<div class="overlay" id="lvOv" hidden>
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="lvTitle">
+    <h2 id="lvTitle" style="text-align:center">ผ่านด่านแล้ว!</h2>
+    <div class="stars" id="lvStars"></div>
+    <div class="stats">
+      <div class="stat"><span>ถูกตั้งแต่ครั้งแรก</span><b id="lvFirst">0/10</b></div>
+      <div class="stat"><span>ตอบผิดในด่านนี้</span><b id="lvMiss">0</b></div>
+      <div class="stat"><span>คะแนนที่ถูกหัก</span><b id="lvLost">0</b></div>
+    </div>
+    <div class="score-big"><span>คะแนนรวมตอนนี้</span><b id="lvScore">0</b></div>
+    <p class="cheer" id="lvMsg"></p>
+    <p class="muted" id="lvNext"></p>
+    <button class="btn" id="lvBtn" type="button">ไปด่านต่อไป ▶</button>
+    <p class="muted">เวลาหยุดนับระหว่างดูหน้านี้</p>
+  </div>
+</div>
+
+<!-- summary -->
+<div class="overlay" id="endOv" hidden>
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="endTitle">
+    <h2 id="endTitle"><span class="emoji">🎉</span> หมดเวลาแล้ว!</h2>
+    <div class="score-big"><span>คะแนนรวม</span><b id="sScore">0</b></div>
+    <div class="stats">
+      <div class="stat"><span>ผลผลิต</span><b id="sHarv">0</b></div>
+      <div class="stat"><span>ตอบถูก</span><b id="sRight">0</b></div>
+      <div class="stat"><span>ตอบผิด</span><b id="sWrong">0</b></div>
+      <div class="stat"><span>แม่นยำ</span><b id="sAcc">0%</b></div>
+      <div class="stat"><span>ผ่านแล้ว (ด่าน)</span><b id="sLv">0</b></div>
+      <div class="stat"><span>คะแนนที่ถูกหัก</span><b id="sLost">0</b></div>
+    </div>
+    <div class="crops" id="sCrops"></div>
+    <p class="cheer" id="sCheer"></p>
+    <h2 style="font-size:1.3rem;margin-top:14px">เฉลยคำตอบ</h2>
+    <div class="tabs">
+      <button class="tab" id="tabAll" type="button" aria-pressed="true">ทุกข้อ</button>
+      <button class="tab" id="tabMiss" type="button" aria-pressed="false">ข้อที่ควรทบทวน</button>
+    </div>
+    <div id="review"></div>
+    <button class="btn" id="againBtn" type="button">เล่นอีกครั้ง</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* =====================================================================
+   ข้อมูลพื้นฐาน
+   ===================================================================== */
+var T=['สามานยนาม','วิสามานยนาม','สมุหนาม','ลักษณนาม','อาการนาม'];
+var TH=[
+  'นึกถึงชื่อเรียกทั่วไป ที่ไม่ได้บอกว่าเป็นของใครหรือที่ไหนโดยเฉพาะ',
+  'นึกถึงชื่อเฉพาะที่ใช้เรียกคน สัตว์ สถานที่ หรือสิ่งใดสิ่งหนึ่งโดยเฉพาะ',
+  'นึกถึงคำที่ใช้เรียกสิ่งหลายๆ อย่างที่อยู่รวมกันเป็นกลุ่ม',
+  'ดูว่าคำนี้ตามหลังตัวเลขเพื่อบอกลักษณะของสิ่งที่นับหรือไม่',
+  'ดูว่าขึ้นต้นด้วย “การ” หรือ “ความ” แล้วตามด้วยกริยาหรือคุณลักษณะหรือไม่'
+];
+var RS=[
+  'เป็นชื่อเรียกทั่วไป ไม่เจาะจงว่าเป็นของใครหรือที่ไหน',
+  'เป็นชื่อเฉพาะที่เจาะจงว่าเป็นใครหรือที่ไหน',
+  'ใช้เรียกสิ่งที่อยู่รวมกันเป็นกลุ่ม',
+  'ตามหลังจำนวนนับเพื่อบอกลักษณะของนามนั้น',
+  'เกิดจาก “การ” หรือ “ความ” นำหน้ากริยาหรือวิเศษณ์'
+];
+
+var W0=['ครู','แมว','โต๊ะ','แม่น้ำ','โรงเรียน','หนังสือ','ภูเขา','ตลาด','นักเรียน','ต้นไม้','ทะเล','ถนน','เด็ก','ช้าง','ปลา','สมุด'];
+var W1=['สมชาย','สมศรี','เชียงใหม่','ภูเก็ต','แม่น้ำเจ้าพระยา','แม่น้ำโขง','ประเทศไทย','ดอยอินทนนท์','ทะเลอันดามัน','กรุงเทพมหานคร','ขอนแก่น'];
+var W2=[{w:'ฝูง',c:'ฝูงนก'},{w:'ฝูง',c:'ฝูงปลา'},{w:'ฝูง',c:'ฝูงวัว'},{w:'โขลง',c:'โขลงช้าง'},{w:'คณะ',c:'คณะครู'},{w:'คณะ',c:'คณะนักเรียน'},{w:'พวก',c:'พวกเด็ก'}];
+var W3=[{w:'ตัว',c:'แมว 3 ตัว'},{w:'คัน',c:'รถ 2 คัน'},{w:'หลัง',c:'บ้าน 1 หลัง'},{w:'ด้าม',c:'ปากกา 2 ด้าม'},{w:'เล่ม',c:'หนังสือ 4 เล่ม'},{w:'ใบ',c:'จาน 3 ใบ'},{w:'ต้น',c:'ต้นไม้ 4 ต้น'},{w:'ฟอง',c:'ไข่ไก่ 6 ฟอง'},{w:'คู่',c:'รองเท้า 1 คู่'},{w:'หวี',c:'กล้วย 5 หวี'},{w:'เชือก',c:'ช้าง 3 เชือก'}];
+var W4=['ความสุข','ความรัก','ความดี','ความกล้าหาญ','ความขยัน','ความซื่อสัตย์','ความสะอาด','การอ่าน','การเดินทาง','การเรียน','การกิน','การวิ่ง','การออกกำลังกาย'];
+/* คำที่ใช้เป็นตัวเลือกตอบ (ใช้เฉพาะคำที่ชนิดชัดเจน) */
+var PW=[W0,W1,['ฝูง','โขลง','คณะ','พวก'],['ตัว','คัน','หลัง','ด้าม','เล่ม','ฟอง','คู่','เชือก','หวี'],W4];
+var VERBS=['อ่าน','เรียน','กิน','วิ่ง','ดี','สะอาด','รัก','เดินทาง','ขยัน'];
+var TR1={'แม่น้ำโขง':'แม่น้ำ','เชียงใหม่':'จังหวัด','สมชาย':'เด็กชาย','ประเทศไทย':'ประเทศ','ภูเก็ต':'จังหวัด','สมศรี':'ผู้หญิง','ดอยอินทนนท์':'ภูเขา','ทะเลอันดามัน':'ทะเล','กรุงเทพมหานคร':'เมือง','แม่น้ำเจ้าพระยา':'แม่น้ำ','ขอนแก่น':'จังหวัด'};
+
+/* คำนามที่ใช้ลักษณนาม: [คำนาม, จำนวน, ลักษณนาม, ลักษณนามที่ห้ามใช้เป็นตัวหลอก, ระดับ(1ง่าย 2กลาง)] */
+var FILL=[
+  ['รถยนต์',2,'คัน',['ตัว'],1],['บ้าน',3,'หลัง',[],1],['หนังสือ',4,'เล่ม',[],1],['แมว',2,'ตัว',[],1],['ปากกา',2,'ด้าม',[],1],
+  ['ไข่ไก่',6,'ฟอง',['ลูก','ใบ'],2],['รองเท้า',1,'คู่',['ตัว'],2],['มะม่วง',3,'ลูก',['ต้น','ผล'],2],['ต้นไม้',4,'ต้น',[],2],
+  ['จาน',3,'ใบ',[],2],['นักเรียน',30,'คน',[],2],['ร่ม',1,'คัน',[],2],['กล้วย',5,'หวี',['ใบ','ต้น','ลูก'],2]
+];
+var UCL=['ตัว','คัน','หลัง','ด้าม','เล่ม','ใบ','ต้น','ลูก','คน','ฟอง','คู่','เชือก','หวี'];
+
+var CROPS=[
+  {k:'mango',e:'🥭',n:'มะม่วง'},{k:'pineapple',e:'🍍',n:'สับปะรด'},{k:'corn',e:'🌽',n:'ข้าวโพด'},
+  {k:'watermelon',e:'🍉',n:'แตงโม'},{k:'tomato',e:'🍅',n:'มะเขือเทศ'},{k:'carrot',e:'🥕',n:'แครอท'}
+];
+var LETTERS=['ก','ข','ค','ง'];
+var GOOD=['เก่งมาก! ได้ผลผลิตเพิ่มแล้ว','ถูกต้อง! ฟาร์มของเรากำลังเติบโต','สุดยอด! เก็บเกี่ยวได้อีก 1 ชิ้น','ใช่เลย! เก็บเกี่ยวต่อกันเลย','เยี่ยมไปเลย! ตะกร้าหนักขึ้นอีกนิด'];
+var BAD=['ลองอีกครั้งนะ มาเรียนรู้ไปด้วยกัน','ยังไม่ใช่ ไม่เป็นไร ลองอีกครั้ง!','เกือบแล้ว! อ่านคำใบ้แล้วลองอีกที'];
+var N_PLOTS=6, GAME_SECONDS=600, PER_LEVEL=10, PENALTY=2;
+var DIFF=['','ง่ายมาก','ง่าย','ปานกลาง','ค่อนข้างยาก','ยาก','ยากมาก'];
+var LVICON=['','🌱','🌿','🌼','🍅','🧺','👑'];
+
+/* =====================================================================
+   ตัวช่วย
+   ===================================================================== */
+function $(id){return document.getElementById(id);}
+function rand(n){return Math.floor(Math.random()*n);}
+function pick(a){return a[rand(a.length)];}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=rand(i+1);var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function guard(p,ms){return Promise.race([p,sleep(ms)]);}
+function reduced(){return !!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}
+function fmt(s){var m=Math.floor(s/60),r=s%60;return (m<10?'0':'')+m+':'+(r<10?'0':'')+r;}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function cropByKey(k){for(var i=0;i<CROPS.length;i++){if(CROPS[i].k===k)return CROPS[i];}return CROPS[0];}
+
+/* =====================================================================
+   คลังคำถาม
+   ===================================================================== */
+function mk(q,a,d,hint,exp){return {q:q,a:a,d:d,hint:hint,exp:exp};}
+
+/* --- ตัวสร้างคำถามอัตโนมัติ (ได้ข้อใหม่ได้เรื่อยๆ) --- */
+function genClassify(types){
+  var t=pick(types), q, w, ctx='';
+  if(t===2||t===3){
+    var it=pick(t===2?W2:W3); w=it.w; ctx=it.c;
+    q='คำว่า “'+w+'” ในวลี “'+ctx+'” เป็นคำนามชนิดใด?';
+  }else{
+    w=pick(t===0?W0:t===1?W1:W4);
+    q='คำว่า “'+w+'” เป็นคำนามชนิดใด?';
+  }
+  var others=shuffle([0,1,2,3,4].filter(function(x){return x!==t;})).slice(0,3).map(function(i){return T[i];});
+  var lead=ctx?'“'+w+'” ในวลี “'+ctx+'”':'“'+w+'”';
+  return mk(q,T[t],others,TH[t],lead+' เป็น'+T[t]+' เพราะ'+RS[t]);
+}
+function trickyFor(t,a){
+  if(t===1) return TR1[a]||null;
+  if(t===0){for(var k in TR1){if(TR1[k]===a)return k;}return null;}
+  if(t===4){
+    if(a==='ความสุข') return pick(VERBS);
+    var d=a.replace(/^(การ|ความ)/,'');
+    return d&&d!==a?d:pick(VERBS);
+  }
+  return null;
+}
+function genPick(types,tricky){
+  var t=pick(types), a=pick(PW[t]);
+  var used={}; used[a]=1; var d=[], tr=null;
+  if(tricky){tr=trickyFor(t,a); if(tr&&!used[tr]){used[tr]=1; d.push(tr);} else tr=null;}
+  var others=shuffle([0,1,2,3,4].filter(function(x){return x!==t;})), i=0;
+  while(d.length<3&&i<40){
+    var w=pick(PW[others[i%4]]); i++;
+    if(!used[w]){used[w]=1; d.push(w);}
+  }
+  var exp='“'+a+'” เป็น'+T[t]+' เพราะ'+RS[t];
+  if(tr){
+    if(t===4) exp+=' ส่วน “'+tr+'” เป็นเพียงคำกริยาหรือวิเศษณ์ ยังไม่ใช่อาการนาม';
+    else if(t===1) exp+=' ส่วน “'+tr+'” เป็นชื่อทั่วไป (สามานยนาม)';
+    else if(t===0) exp+=' ส่วน “'+tr+'” เป็นชื่อเฉพาะ (วิสามานยนาม)';
+  }
+  return mk('ข้อใดเป็น'+T[t]+'?',a,d,TH[t],exp);
+}
+function genFill(maxLevel){
+  var pool=FILL.filter(function(f){return f[4]<=maxLevel;});
+  var f=pick(pool);
+  var bad=UCL.filter(function(c){return c!==f[2]&&f[3].indexOf(c)<0;});
+  var d=shuffle(bad).slice(0,3);
+  return mk('เติมลักษณนามให้ถูกต้อง: “'+f[0]+' '+f[1]+' ___”',f[2],d,
+    'นึกถึงคำที่เรามักพูดตามหลังตัวเลขเวลานับสิ่งนี้',
+    'ลักษณนามของ “'+f[0]+'” คือ “'+f[2]+'” เช่น '+f[0]+' '+f[1]+' '+f[2]);
+}
+
+/* --- ข้อที่เขียนเอง --- */
+var DEF=[
+  mk('ข้อใดอธิบาย “สามานยนาม” ได้ถูกต้อง?','คำนามที่ใช้เรียกชื่อทั่วไป ไม่เจาะจง',
+    ['คำนามที่เป็นชื่อเฉพาะของคน สัตว์ หรือสถานที่','คำนามที่ตามหลังจำนวนนับเพื่อบอกลักษณะ','คำนามที่ใช้เรียกสิ่งที่รวมกันเป็นกลุ่ม'],
+    'สามานยนาม มาจากคำว่า “สามัญ” ที่แปลว่าทั่วไป','สามานยนามคือชื่อเรียกทั่วไป ไม่เจาะจง เช่น ครู แมว โต๊ะ'),
+  mk('ข้อใดอธิบาย “วิสามานยนาม” ได้ถูกต้อง?','คำนามที่เป็นชื่อเฉพาะของคน สัตว์ สิ่งของ หรือสถานที่',
+    ['ชื่อเรียกทั่วไปของคนและสิ่งของ','คำนามที่ตามหลังจำนวนนับเพื่อบอกลักษณะ','คำนามที่เกิดจากคำ “การ” หรือ “ความ”'],
+    'วิสามานยนามบอกชื่อที่เจาะจงว่าเป็นอะไรหรือใครโดยเฉพาะ','วิสามานยนามคือชื่อเฉพาะ เช่น สมชาย เชียงใหม่ แม่น้ำโขง'),
+  mk('ข้อใดอธิบาย “สมุหนาม” ได้ถูกต้อง?','คำนามที่บอกว่าเป็นกลุ่มหรือหมู่',
+    ['ชื่อเฉพาะของคนและสถานที่','คำที่ตามหลังจำนวนนับเพื่อบอกลักษณะ','คำนามที่เกิดจากคำกริยา'],
+    'ลองนึกถึงคำว่า ฝูง โขลง คณะ','สมุหนามคือคำที่บอกว่าสิ่งนั้นอยู่รวมกันเป็นกลุ่ม เช่น ฝูง โขลง คณะ'),
+  mk('ข้อใดอธิบาย “ลักษณนาม” ได้ถูกต้อง?','คำนามที่ตามหลังจำนวนนับเพื่อบอกลักษณะของนาม',
+    ['ชื่อเรียกทั่วไปของคนและสิ่งของ','คำนามที่บอกว่าเป็นกลุ่มหรือหมู่','คำนามที่เป็นชื่อเฉพาะ'],
+    'ลองนึกถึง “แมว 2 ตัว” หรือ “รถ 3 คัน”','ลักษณนามคือคำที่ตามหลังจำนวนนับเพื่อบอกลักษณะ เช่น ตัว คัน หลัง'),
+  mk('ข้อใดอธิบาย “อาการนาม” ได้ถูกต้อง?','คำนามที่ใช้ “การ” หรือ “ความ” นำหน้ากริยาหรือวิเศษณ์',
+    ['คำนามที่ใช้เรียกสิ่งที่รวมกันเป็นกลุ่ม','ชื่อเฉพาะของคน สัตว์ หรือสถานที่','คำนามที่ตามหลังจำนวนนับเพื่อบอกลักษณะ'],
+    'ลองนึกถึงคำว่า การอ่าน และ ความสุข','อาการนามคือคำนามที่เกิดจาก “การ” หรือ “ความ” + กริยา/วิเศษณ์ เช่น การอ่าน ความสุข'),
+  mk('คำว่า “การ” และ “ความ” นำหน้าคำชนิดใดเพื่อสร้างอาการนาม?','คำกริยาหรือคำวิเศษณ์',
+    ['คำสันธาน','คำบุพบท','ชื่อเฉพาะของสถานที่'],
+    'ลองดู “การอ่าน” (อ่าน = ?) และ “ความดี” (ดี = ?)','“การ” มักนำหน้ากริยา เช่น การอ่าน ส่วน “ความ” มักนำหน้ากริยาหรือวิเศษณ์ เช่น ความสุข')
+];
+var PICKH=[
+  mk('ข้อใดเป็นวิสามานยนาม?','เชียงใหม่',['จังหวัด','ภูเขา','นักเรียน'],'มองหาคำที่เป็นชื่อเฉพาะของสถานที่','“เชียงใหม่” เป็นชื่อเฉพาะ ส่วน “จังหวัด” “ภูเขา” “นักเรียน” เป็นสามานยนาม'),
+  mk('ข้อใดเป็นวิสามานยนาม?','แม่น้ำโขง',['แม่น้ำ','คลอง','ทะเล'],'ดูว่าคำไหนบอกชื่อเฉพาะของแหล่งน้ำสายหนึ่ง','“แม่น้ำโขง” เป็นชื่อเฉพาะ ส่วน “แม่น้ำ” “คลอง” “ทะเล” เป็นสามานยนาม'),
+  mk('ข้อใดเป็นวิสามานยนาม?','สมชาย',['เด็กชาย','ผู้ชาย','พี่ชาย'],'ชื่อเฉพาะของคน จะเจาะจงว่าเป็นใครคนใดคนหนึ่ง','“สมชาย” เป็นชื่อเฉพาะของคน ส่วนที่เหลือเป็นสามานยนามที่ใช้เรียกทั่วไป'),
+  mk('ข้อใดเป็นสามานยนามทั้งหมด?','ครู โต๊ะ ปากกา',['ครู กรุงเทพ ปากกา','สมชาย โต๊ะ ปากกา','ครู โต๊ะ ฝูง'],
+    'หาข้อที่ไม่มีชื่อเฉพาะ และไม่มีคำบอกกลุ่ม','“ครู โต๊ะ ปากกา” เป็นสามานยนามทั้งหมด ส่วนข้ออื่นมี “กรุงเทพ” “สมชาย” (วิสามานยนาม) หรือ “ฝูง” (สมุหนาม) ปนอยู่'),
+  mk('ข้อใดเป็นสมุหนามทั้งหมด?','ฝูง โขลง คณะ',['ฝูง ตัว คณะ','ฝูง โขลง ความดี','ฝูง โขลง เชียงใหม่'],
+    'ตรวจทีละคำว่าทุกคำบอกกลุ่มหรือหมู่หรือไม่','“ฝูง โขลง คณะ” เป็นสมุหนามทั้งหมด ส่วนข้ออื่นมี “ตัว” (ลักษณนาม) “ความดี” (อาการนาม) หรือ “เชียงใหม่” (วิสามานยนาม) ปนอยู่'),
+  mk('ข้อใดเป็นอาการนาม?','การเรียน',['เรียน','โรงเรียน','นักเรียน'],'“เรียน” เป็นคำกริยา ลองหาคำที่มี “การ” นำหน้ากริยา','“การ” + “เรียน” = “การเรียน” เป็นอาการนาม ส่วน “เรียน” เป็นกริยา “โรงเรียน” “นักเรียน” เป็นสามานยนาม'),
+  mk('ข้อใดเป็นอาการนาม?','ความดี',['ดี','คนดี','ดีใจ'],'“ดี” เป็นคำวิเศษณ์ ลองหาคำที่มี “ความ” นำหน้า','“ความ” + “ดี” = “ความดี” เป็นอาการนาม ส่วน “ดี” เป็นวิเศษณ์ “คนดี” เป็นสามานยนาม'),
+  mk('ข้อใดเรียงคู่ (สามานยนาม – วิสามานยนาม) ได้ถูกต้อง?','จังหวัด – ขอนแก่น',['ขอนแก่น – จังหวัด','ฝูง – ขอนแก่น','ตัว – จังหวัด'],
+    'คำแรกต้องเป็นชื่อทั่วไป คำหลังต้องเป็นชื่อเฉพาะ','“จังหวัด” เป็นสามานยนาม (ทั่วไป) ส่วน “ขอนแก่น” เป็นวิสามานยนาม (ชื่อเฉพาะ)')
+];
+var SENT=[
+  mk('ในประโยค “ฝูงนกบินอยู่บนท้องฟ้า” คำใดเป็นสมุหนาม?','ฝูง',['นก','ท้องฟ้า','บิน'],'หาคำที่บอกว่านกอยู่รวมกันเป็นกลุ่ม','“ฝูง” เป็นสมุหนาม ส่วน “นก” “ท้องฟ้า” เป็นสามานยนาม “บิน” เป็นกริยา'),
+  mk('ในประโยค “สมชายซื้อปากกา 2 ด้ามที่ตลาด” คำใดเป็นลักษณนาม?','ด้าม',['สมชาย','ปากกา','ตลาด'],'หาคำที่ตามหลังตัวเลข 2','“ด้าม” เป็นลักษณนามของ “ปากกา” ส่วน “สมชาย” เป็นวิสามานยนาม “ปากกา” “ตลาด” เป็นสามานยนาม'),
+  mk('ในประโยค “น้องชอบการอ่านหนังสือ” คำใดเป็นอาการนาม?','การอ่าน',['น้อง','หนังสือ','ชอบ'],'หาคำที่มี “การ” นำหน้ากริยา','“การอ่าน” เป็นอาการนาม ส่วน “น้อง” “หนังสือ” เป็นสามานยนาม “ชอบ” เป็นกริยา'),
+  mk('ในประโยค “คุณครูพานักเรียนไปเที่ยวเชียงใหม่” คำใดเป็นวิสามานยนาม?','เชียงใหม่',['คุณครู','นักเรียน','พา'],'หาคำที่เป็นชื่อเฉพาะของสถานที่','“เชียงใหม่” เป็นวิสามานยนาม ส่วน “คุณครู” “นักเรียน” เป็นสามานยนาม “พา” เป็นกริยา'),
+  mk('ประโยคใดมีสมุหนามอยู่ด้วย?','ฝูงวัวเดินข้ามถนน',['วัวสามตัวเดินข้ามถนน','วัวชื่อทองดีเดินข้ามถนน','ความหิวทำให้วัวเดินหาอาหาร'],
+    'มองหาคำที่บอกว่าวัวอยู่รวมกันเป็นกลุ่ม','“ฝูง” ในประโยคแรกเป็นสมุหนาม ส่วนข้ออื่นมีลักษณนาม วิสามานยนาม หรืออาการนาม'),
+  mk('ประโยคใดมีลักษณนามอยู่ด้วย?','น้องมีดินสอ 3 แท่ง',['น้องชอบการวาดรูป','ฝูงนกบินกลับรัง','สมศรีไปเชียงใหม่'],
+    'มองหาคำที่ตามหลังตัวเลข','“แท่ง” ตามหลังจำนวนนับ “3” จึงเป็นลักษณนามของ “ดินสอ”'),
+  mk('ประโยคใดมีอาการนามอยู่ด้วย?','ฉันภูมิใจในความซื่อสัตย์ของเธอ',['ฝูงนกบินกลับรัง','ฉันซื้อปากกา 2 ด้าม','สมศรีไปตลาด'],
+    'มองหาคำที่ขึ้นต้นด้วย “ความ” หรือ “การ”','“ความซื่อสัตย์” เกิดจาก “ความ” + “ซื่อสัตย์” จึงเป็นอาการนาม'),
+  mk('ประโยคใดมีวิสามานยนามอยู่ด้วย?','สมศรีไปเที่ยวภูเก็ต',['นักเรียนไปโรงเรียน','ฝูงนกบินกลับรัง','ฉันซื้อปากกา 2 ด้าม'],
+    'มองหาชื่อเฉพาะของคนหรือสถานที่','“สมศรี” และ “ภูเก็ต” เป็นชื่อเฉพาะ จึงเป็นวิสามานยนาม')
+];
+var SAME=[
+  mk('คำใดเป็นนามชนิดเดียวกับ “โขลง”?','ฝูง',['ช้าง','ตัว','ความดี'],'หาก่อนว่า “โขลง” เป็นนามชนิดใด แล้วหาคำที่ชนิดเดียวกัน','“โขลง” และ “ฝูง” เป็นสมุหนามเหมือนกัน ส่วน “ช้าง” เป็นสามานยนาม “ตัว” เป็นลักษณนาม “ความดี” เป็นอาการนาม'),
+  mk('คำใดเป็นนามชนิดเดียวกับ “ความรัก”?','การเดินทาง',['รัก','ครู','ตัว'],'ดูว่ามี “การ” หรือ “ความ” นำหน้ากริยา/วิเศษณ์หรือไม่','“ความรัก” และ “การเดินทาง” เป็นอาการนามเหมือนกัน ส่วน “รัก” เป็นกริยา “ครู” เป็นสามานยนาม “ตัว” เป็นลักษณนาม'),
+  mk('คำใดเป็นนามชนิดเดียวกับ “เชียงใหม่”?','ภูเก็ต',['จังหวัด','เมือง','ถนน'],'“เชียงใหม่” เป็นชื่อเฉพาะ ลองหาชื่อเฉพาะอีกคำ','“เชียงใหม่” และ “ภูเก็ต” เป็นวิสามานยนาม ส่วน “จังหวัด” “เมือง” “ถนน” เป็นสามานยนาม'),
+  mk('คำว่า “คัน” ในวลี “รถ 2 คัน” เป็นนามชนิดเดียวกับคำใด?','ด้าม',['รถ','ฝูง','การขับขี่'],'“คัน” ตามหลังจำนวนนับ ลองหาคำที่ทำหน้าที่แบบเดียวกัน','“คัน” และ “ด้าม” เป็นลักษณนามเหมือนกัน ส่วน “รถ” เป็นสามานยนาม “ฝูง” เป็นสมุหนาม “การขับขี่” เป็นอาการนาม')
+];
+var NOT=[
+  mk('ข้อใดไม่ใช่สามานยนาม?','สมชาย',['ครู','โต๊ะ','แม่น้ำ'],'สามานยนามคือชื่อทั่วไป ลองหาคำที่เป็นชื่อเฉพาะ','“สมชาย” เป็นวิสามานยนาม ส่วน “ครู” “โต๊ะ” “แม่น้ำ” เป็นสามานยนาม'),
+  mk('ข้อใดไม่ใช่วิสามานยนาม?','ภูเขา',['ภูเก็ต','สมศรี','แม่น้ำโขง'],'ลองหาคำที่เป็นชื่อทั่วไป ไม่ใช่ชื่อเฉพาะ','“ภูเขา” เป็นสามานยนาม ส่วน “ภูเก็ต” “สมศรี” “แม่น้ำโขง” เป็นชื่อเฉพาะ'),
+  mk('ข้อใดไม่ใช่อาการนาม?','ฝูง',['ความดี','การอ่าน','ความสุข'],'อาการนามขึ้นต้นด้วย “การ” หรือ “ความ”','“ฝูง” เป็นสมุหนาม ส่วนที่เหลือเป็นอาการนาม'),
+  mk('ข้อใดไม่ใช่สมุหนาม?','ตัว',['ฝูง','โขลง','คณะ'],'สมุหนามบอกว่าเป็นกลุ่มหรือหมู่','“ตัว” เป็นลักษณนาม ส่วน “ฝูง” “โขลง” “คณะ” เป็นสมุหนาม'),
+  mk('ข้อใดไม่ใช่ลักษณนาม?','ความสุข',['คัน','ตัว','ด้าม'],'ลักษณนามตามหลังจำนวนนับ เช่น 2 ___','“ความสุข” เป็นอาการนาม ส่วน “คัน” “ตัว” “ด้าม” เป็นลักษณนาม'),
+  mk('ข้อใดเป็นคำกริยา ไม่ใช่อาการนาม?','อ่าน',['การอ่าน','ความรัก','การเดินทาง'],'ตัวเลือกที่ไม่มี “การ” หรือ “ความ” นำหน้า อาจเป็นกริยา','“อ่าน” เป็นกริยา ส่วน “การอ่าน” “ความรัก” “การเดินทาง” เป็นอาการนาม'),
+  mk('ข้อใดเป็นอาการนามที่สร้างจากคำวิเศษณ์?','ความสะอาด',['การกิน','การวิ่ง','การอ่าน'],'“กิน” “วิ่ง” “อ่าน” เป็นกริยา ลองหาคำที่มาจากคำบอกลักษณะ','“ความสะอาด” มาจาก “ความ” + วิเศษณ์ “สะอาด” ส่วนที่เหลือมาจากกริยา'),
+  mk('ข้อใดมีทั้งสมุหนามและลักษณนาม?','ฝูงวัว 5 ตัว',['วัว 5 ตัว','ฝูงวัวในทุ่งนา','ความสุขของวัว'],'ต้องมีทั้งคำบอกกลุ่ม และคำที่ตามหลังตัวเลข','“ฝูง” เป็นสมุหนาม และ “ตัว” เป็นลักษณนาม ส่วนข้ออื่นมีไม่ครบทั้งสองชนิด'),
+  mk('ข้อใดมีทั้งวิสามานยนามและอาการนาม?','สมชายมีความสุข',['สมชายซื้อปากกา 2 ด้าม','ครูมีความสุข','ฝูงนกบินกลับรัง'],'ต้องมีทั้งชื่อเฉพาะ และคำขึ้นต้นด้วย “ความ”','“สมชาย” เป็นวิสามานยนาม และ “ความสุข” เป็นอาการนาม')
+];
+/* โจทย์จำแนกคำนามในประโยคหลายคำ (ยาก) */
+var MAPDEF=[
+  {s:'คณะครูพานักเรียน 40 คนไปเที่ยวภูเก็ต',w:[['คณะ',2],['คน',3],['ภูเก็ต',1]]},
+  {s:'ฝูงช้างสามเชือกเดินผ่านแม่น้ำโขง',w:[['ฝูง',2],['เชือก',3],['แม่น้ำโขง',1]]},
+  {s:'ความขยันทำให้สมศรีอ่านหนังสือได้ 3 เล่ม',w:[['ความขยัน',4],['สมศรี',1],['เล่ม',3]]},
+  {s:'การเดินทางไปเชียงใหม่ใช้รถ 2 คัน',w:[['การเดินทาง',4],['เชียงใหม่',1],['คัน',3]]},
+  {s:'โขลงช้างกินกล้วย 5 หวี',w:[['โขลง',2],['ช้าง',0],['หวี',3]]},
+  {s:'เด็กมีความสุขที่ได้ไปเที่ยวทะเลอันดามัน',w:[['เด็ก',0],['ความสุข',4],['ทะเลอันดามัน',1]]},
+  {s:'สมชายแจกปากกาให้เพื่อนคนละ 2 ด้าม',w:[['สมชาย',1],['เพื่อน',0],['ด้าม',3]]},
+  {s:'ฝูงนกบินกลับรังด้วยความรวดเร็ว',w:[['ฝูง',2],['รัง',0],['ความรวดเร็ว',4]]},
+  {s:'การอ่านหนังสือวันละ 1 เล่มทำให้สมหญิงฉลาดขึ้น',w:[['การอ่าน',4],['เล่ม',3],['สมหญิง',1]]},
+  {s:'คณะนักท่องเที่ยวมาดูช้าง 3 เชือกที่เชียงใหม่',w:[['คณะ',2],['เชือก',3],['เชียงใหม่',1]]}
+];
+function mapSpec(m){
+  var types=m.w.map(function(x){return x[1];});
+  var words=m.w.map(function(x){return '“'+x[0]+'”';}).join(' ');
+  var seen={}; seen[types.join()]=1; var wrong=[], tries=0;
+  while(wrong.length<3&&tries<300){
+    tries++; var t=types.slice(), mode=tries%3, i=rand(3), j;
+    if(mode===0){j=rand(3); var tmp=t[i]; t[i]=t[j]; t[j]=tmp;}
+    else if(mode===1){t[i]=rand(5);}
+    else{j=(i+1+rand(2))%3; t[i]=rand(5); t[j]=rand(5);}
+    var k=t.join(); if(!seen[k]){seen[k]=1; wrong.push(t);}
+  }
+  function lab(a){return a.map(function(x){return T[x];}).join(' – ');}
+  return mk('ในประโยค “'+m.s+'” คำว่า '+words+' เป็นคำนามชนิดใดตามลำดับ?',
+    lab(types), wrong.map(lab),
+    'จำแนกทีละคำ แล้วตัดตัวเลือกที่ผิดทิ้งไปทีละข้อ',
+    m.w.map(function(x){return '“'+x[0]+'” = '+T[x[1]];}).join(', '));
+}
+
+/* --- จัดชุดคำถามของแต่ละด่าน (ด่านละ 10 ข้อ ยากขึ้นเรื่อยๆ) --- */
+function planLevel(L,used){
+  var out=[];
+  function add(s){used[s.q]=1; used[s.q+'|'+s.a]=1; out.push(s);}
+  function gen(fn,n){
+    for(var k=0;k<n;k++){
+      var s=null,tries=0;
+      do{s=fn();tries++;}while(used[s.q+'|'+s.a]&&tries<40);
+      add(s);
+    }
+  }
+  function hand(pool,n,isMap){
+    var c=pool.filter(function(s){return !used[isMap?mapSpec2q(s):s.q];});
+    if(c.length<n){pool.forEach(function(s){delete used[isMap?mapSpec2q(s):s.q];}); c=pool.slice();}
+    shuffle(c);
+    for(var k=0;k<n;k++){add(isMap?mapSpec(c[k]):c[k]);}
+  }
+  function mapSpec2q(m){return mapSpec(m).q;}
+  if(L<=1){
+    gen(function(){return genClassify([0,1]);},4);
+    gen(function(){return genPick([0,1],false);},3);
+    gen(function(){return genFill(1);},3);
+  }else if(L===2){
+    gen(function(){return genClassify([0,1,2,3]);},3);
+    gen(function(){return genPick([0,1,2,3],false);},3);
+    gen(function(){return genFill(2);},2);
+    hand(DEF,2);
+  }else if(L===3){
+    gen(function(){return genClassify([0,1,2,3,4]);},3);
+    gen(function(){return genPick([0,1,2,3,4],false);},3);
+    gen(function(){return genFill(2);},2);
+    hand(DEF,1); hand(PICKH,1);
+  }else if(L===4){
+    hand(SENT,4); hand(PICKH,3);
+    gen(function(){return genPick([0,1,2,3,4],true);},2);
+    hand(SAME,1);
+  }else if(L===5){
+    hand(MAPDEF,4,true); hand(NOT,3); hand(SAME,1); hand(SENT,2);
+  }else{
+    hand(MAPDEF,3,true); hand(NOT,3); hand(SAME,1); hand(SENT,1);
+    gen(function(){return genPick([0,1,2,3,4],true);},2);
+  }
+  return shuffle(out);
+}
+function buildOptions(spec){
+  var o=[{text:spec.a,ok:true}];
+  spec.d.forEach(function(t){o.push({text:t,ok:false});});
+  return shuffle(o);
+}
+
+/* =====================================================================
+   ฟาร์ม 3 มิติ (Three.js)
+   ===================================================================== */
+var Farm3D=(function(){
+  var R={}, THREE=null, renderer,scene,camera,stage;
+  var tweens=[],plots=[],heap=[],heapN=0,basket,frame,frameMat,arrow,canG,started=false;
+  var geo={},mats={},texc={};
+  var BX=0,BZ=3.7;
+
+  function easeIO(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+  function backOut(t){var c=1.70158,u=t-1;return 1+(c+1)*u*u*u+c*u*u;}
+  function tween(ms,fn,ease){
+    return new Promise(function(res){
+      if(reduced()){fn(1);res();return;}
+      tweens.push({t0:performance.now(),ms:ms,fn:fn,ease:ease||easeIO,res:res});
+    });
+  }
+  function mat(color,rough,extra){
+    var key=color+'|'+(rough==null?.75:rough)+(extra?JSON.stringify(Object.keys(extra)):'');
+    if(!mats[key]){var o={color:color,roughness:rough==null?.75:rough,metalness:0};if(extra){for(var k in extra)o[k]=extra[k];}mats[key]=new THREE.MeshStandardMaterial(o);}
+    return mats[key];
+  }
+  function tex(key,w,h,draw,rx,ry){
+    if(texc[key])return texc[key];
+    var c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);
+    var t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;
+    if(rx)t.repeat.set(rx,ry||rx);
+    t.anisotropy=4;texc[key]=t;return t;
+  }
+  function mesh(g,m,cast){var o=new THREE.Mesh(g,m);o.castShadow=cast!==false;return o;}
+
+  /* ---------- ลายพื้นผิว (วาดเอง ไม่ต้องใช้รูป) ---------- */
+  function texGrass(){return tex('grass',256,256,function(g,w,h){
+    g.fillStyle='#5aaf50';g.fillRect(0,0,w,h);
+    var cols=['#6bc25c','#4d9c45','#7acf68','#57a64d','#468f3f'];
+    for(var i=0;i<3600;i++){g.fillStyle=cols[i%5];g.fillRect(Math.random()*w,Math.random()*h,2,3+Math.random()*5);}
+  },60,60);}
+  function texSoil(){return tex('soil',256,256,function(g,w,h){
+    g.fillStyle='#6a4126';g.fillRect(0,0,w,h);
+    for(var y=0;y<h;y+=32){g.fillStyle='#4c2e19';g.fillRect(0,y+8,w,9);g.fillStyle='#8a5a36';g.fillRect(0,y+19,w,5);}
+    for(var i=0;i<1800;i++){g.fillStyle=(i%2)?'#7b4d2d':'#573520';g.fillRect(Math.random()*w,Math.random()*h,2,2);}
+  },1,1);}
+  function texWall(){return tex('wall',256,128,function(g,w,h){
+    g.fillStyle='#c5392f';g.fillRect(0,0,w,h);
+    for(var x=0;x<w;x+=16){g.fillStyle='rgba(60,0,0,.35)';g.fillRect(x,0,2,h);g.fillStyle='rgba(255,255,255,.08)';g.fillRect(x+3,0,2,h);}
+    for(var i=0;i<400;i++){g.fillStyle='rgba(80,10,10,.15)';g.fillRect(Math.random()*w,Math.random()*h,3,10);}
+  },3,1.4);}
+  function texRoof(){return tex('roof',128,128,function(g,w,h){
+    g.fillStyle='#7d2c26';g.fillRect(0,0,w,h);
+    for(var y=0;y<h;y+=12){g.fillStyle='rgba(0,0,0,.28)';g.fillRect(0,y,w,2);}
+    for(var i=0;i<300;i++){g.fillStyle='rgba(255,255,255,.05)';g.fillRect(Math.random()*w,Math.random()*h,8,3);}
+  },4,1);}
+  function texWicker(){return tex('wicker',128,128,function(g,w,h){
+    g.fillStyle='#c58b3f';g.fillRect(0,0,w,h);
+    g.lineWidth=5;
+    for(var i=-h;i<w+h;i+=16){g.strokeStyle='#8f5f22';g.beginPath();g.moveTo(i,0);g.lineTo(i+h,h);g.stroke();g.strokeStyle='#e0aa5c';g.beginPath();g.moveTo(i+8,0);g.lineTo(i-h+8,h);g.stroke();}
+  },4,1);}
+  function texMelon(){return tex('melon',128,128,function(g,w,h){
+    g.fillStyle='#46a85a';g.fillRect(0,0,w,h);
+    for(var x=0;x<w;x+=16){g.fillStyle='#1f6b34';g.fillRect(x+3,0,8,h);}
+  },1,1);}
+  function texPine(){return tex('pine',128,128,function(g,w,h){
+    g.fillStyle='#ebb92b';g.fillRect(0,0,w,h);g.strokeStyle='#a9731a';g.lineWidth=3;
+    for(var i=-h;i<w+h;i+=22){g.beginPath();g.moveTo(i,0);g.lineTo(i+h,h);g.stroke();g.beginPath();g.moveTo(i+h,0);g.lineTo(i,h);g.stroke();}
+  },1,1);}
+  function texCorn(){return tex('corn',128,128,function(g,w,h){
+    g.fillStyle='#f4c92d';g.fillRect(0,0,w,h);
+    for(var x=4;x<w;x+=12)for(var y=4;y<h;y+=12){g.fillStyle='#ffe68a';g.beginPath();g.arc(x,y,4,0,6.3);g.fill();g.fillStyle='#e0a91c';g.beginPath();g.arc(x+2,y+2,2,0,6.3);g.fill();}
+  },1,2);}
+
+  /* ---------- พืช ---------- */
+  function leaf(len,wid,col){var m=mesh(geo.sphere,mat(col||0x3fae4a,.8));m.scale.set(len,.06,wid);return m;}
+  function bush(){
+    var g=new THREE.Group();
+    for(var i=0;i<8;i++){
+      var a=i/8*Math.PI*2+.3,lf=leaf(.5,.2,i%2?0x3fae4a:0x2f9a3d);
+      lf.position.set(Math.cos(a)*.4,.2+(i%2)*.09,Math.sin(a)*.4);
+      lf.rotation.y=-a;lf.rotation.z=.4+(i%2)*.15;g.add(lf);
+    }
+    return g;
+  }
+  function sproutNew(){
+    var g=new THREE.Group();
+    var st=mesh(geo.cyl,mat(0x3f9a3d));st.scale.set(.03,.3,.03);st.position.y=.15;g.add(st);
+    var l1=leaf(.2,.1);l1.position.set(.12,.3,0);l1.rotation.z=.5;g.add(l1);
+    var l2=leaf(.2,.1);l2.position.set(-.12,.3,0);l2.rotation.z=-.5;g.add(l2);
+    g.scale.setScalar(1.7);
+    return g;
+  }
+  var FRUIT={
+    mango:function(){var g=new THREE.Group();
+      var b=mesh(geo.sphere,mat(0xf6b11f,.45));b.scale.set(.36,.42,.3);b.rotation.z=.35;g.add(b);
+      var r=mesh(geo.sphere,mat(0xe4572e,.5));r.scale.set(.2,.24,.18);r.position.set(.1,.04,.14);g.add(r);
+      var st=mesh(geo.cyl,mat(0x6b4a1f));st.scale.set(.025,.12,.025);st.position.set(.08,.44,0);g.add(st);
+      var lf=leaf(.24,.1);lf.position.set(.22,.46,0);lf.rotation.z=.25;g.add(lf);
+      g.position.y=.78;return g;},
+    pineapple:function(){var g=new THREE.Group();
+      var b=mesh(geo.sphere,mat(0xffffff,.6,{map:texPine()}));b.scale.set(.3,.42,.3);g.add(b);
+      for(var i=0;i<9;i++){var p=new THREE.Group();p.rotation.y=i/9*Math.PI*2;var c=mesh(geo.cone,mat(i%2?0x3a9a3d:0x2d8a35));c.scale.set(.07,.5,.04);c.position.set(.03,.62,0);c.rotation.z=-.28;p.add(c);g.add(p);}
+      g.position.y=.82;return g;},
+    corn:function(){var g=new THREE.Group();
+      var b=mesh(geo.cyl,mat(0xffffff,.55,{map:texCorn()}));b.scale.set(.17,.8,.17);g.add(b);
+      var tp=mesh(geo.sphere,mat(0xf4c92d,.55));tp.scale.set(.17,.14,.17);tp.position.y=.4;g.add(tp);
+      for(var i=0;i<5;i++){var p=new THREE.Group();p.rotation.y=i/5*Math.PI*2;var c=mesh(geo.cone,mat(i%2?0x4cb04f:0x3a9a3d));c.scale.set(.12,.5,.06);c.position.set(.15,-.22,0);c.rotation.z=-.4;p.add(c);g.add(p);}
+      g.position.y=.9;return g;},
+    watermelon:function(){var g=new THREE.Group();
+      var b=mesh(geo.sphere,mat(0xffffff,.5,{map:texMelon()}));b.scale.set(.56,.46,.46);g.add(b);
+      var st=mesh(geo.cyl,mat(0x5a7a2a));st.scale.set(.03,.1,.03);st.position.y=.46;g.add(st);
+      g.position.y=.6;return g;},
+    tomato:function(){var g=new THREE.Group();
+      var spec=[[0,0,0,.32],[.38,-.12,.1,.25],[-.34,-.14,-.06,.23]];
+      spec.forEach(function(s){
+        var t=mesh(geo.sphere,mat(0xe5392c,.3));t.scale.set(s[3],s[3]*.92,s[3]);t.position.set(s[0],s[1],s[2]);g.add(t);
+        var c=mesh(geo.cone,mat(0x2f8f3d));c.scale.set(s[3]*.5,s[3]*.3,s[3]*.5);c.position.set(s[0],s[1]+s[3]*.85,s[2]);c.rotation.x=Math.PI;g.add(c);
+      });
+      g.position.y=.72;return g;},
+    carrot:function(){var g=new THREE.Group();
+      var c=mesh(geo.cone,mat(0xff8f1f,.6));c.scale.set(.17,.85,.17);c.rotation.x=Math.PI;g.add(c);
+      for(var i=0;i<5;i++){var p=new THREE.Group();p.rotation.y=i/5*Math.PI*2;var f=mesh(geo.cone,mat(0x3fae4a));f.scale.set(.05,.6,.03);f.position.set(.05,.7,0);f.rotation.z=-.3;p.add(f);g.add(p);}
+      g.position.y=.14;return g;}
+  };
+  var FCOL={mango:0xf6b11f,pineapple:0xebb92b,corn:0xf4c92d,watermelon:0x2f9e4f,tomato:0xe5392c,carrot:0xff8f1f};
+  var PS=1.7;
+  function plantNew(key){
+    var g=new THREE.Group(),b=bush(),f=FRUIT[key]();
+    g.add(b);g.add(f);
+    return {g:g,fruit:f,bush:b,col:FCOL[key]};
+  }
+
+  /* ---------- สร้างฉาก ---------- */
+  function buildWorld(){
+    var hemi=new THREE.HemisphereLight(0xe2f4ff,0x6f9a4a,.9);scene.add(hemi);
+    var sun=new THREE.DirectionalLight(0xfff0cf,.95);sun.position.set(6,11,7);sun.castShadow=true;
+    sun.shadow.mapSize.set(1024,1024);
+    var sc=sun.shadow.camera;sc.left=-10;sc.right=10;sc.top=10;sc.bottom=-10;sc.near=1;sc.far=40;
+    sun.shadow.bias=-.0006;scene.add(sun);
+
+    var ground=new THREE.Mesh(new THREE.PlaneGeometry(240,240),new THREE.MeshStandardMaterial({map:texGrass(),roughness:1}));
+    ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+
+    // เนินเขาไกลๆ
+    [[-26,-1.5,-40,30,6,0x5aa853],[8,-1.5,-46,36,7,0x4f9c4d],[34,-1.5,-38,26,5,0x63b25a],[-6,-1.5,-34,22,3.5,0x6bbb5f]].forEach(function(h){
+      var m=new THREE.Mesh(geo.sphere,new THREE.MeshStandardMaterial({color:h[5],roughness:1}));
+      m.scale.set(h[3],h[4],h[3]*.6);m.position.set(h[0],h[1],h[2]);scene.add(m);
+    });
+
+    // ยุ้งฉาง
+    var barn=new THREE.Group();barn.position.set(-.6,0,-6.6);
+    var wall=mesh(geo.box,mat(0xffffff,.85,{map:texWall()}));wall.scale.set(3.4,1.6,2.4);wall.position.y=.8;wall.receiveShadow=true;barn.add(wall);
+    var rm=mat(0xffffff,.8,{map:texRoof()});
+    var r1=mesh(geo.box,rm);r1.scale.set(3.7,.1,1.55);r1.position.set(0,2.04,-.62);r1.rotation.x=-.62;barn.add(r1);
+    var r2=mesh(geo.box,rm);r2.scale.set(3.7,.1,1.55);r2.position.set(0,2.04,.62);r2.rotation.x=.62;barn.add(r2);
+    var tri=new THREE.Shape();tri.moveTo(-1.2,0);tri.lineTo(1.2,0);tri.lineTo(0,.95);tri.lineTo(-1.2,0);
+    var tg=new THREE.ShapeGeometry(tri),tm=new THREE.MeshStandardMaterial({color:0xb8332a,roughness:.9,side:THREE.DoubleSide});
+    var t1=new THREE.Mesh(tg,tm);t1.position.set(1.7,1.6,0);t1.rotation.y=Math.PI/2;barn.add(t1);
+    var t2=new THREE.Mesh(tg,tm);t2.position.set(-1.7,1.6,0);t2.rotation.y=Math.PI/2;barn.add(t2);
+    var door=mesh(geo.box,mat(0x8e2723,.9),false);door.scale.set(1.0,1.05,.06);door.position.set(0,.53,1.2);barn.add(door);
+    var wm=mat(0xfff3e0,.8);
+    [[0,.53,1.25,1.1,.07,.07,0],[0,.53,1.25,1.1,.07,.07,0.8],[0,.53,1.25,1.1,.07,.07,-0.8]].forEach(function(b){
+      var tr=mesh(geo.box,wm,false);tr.scale.set(b[3],b[4],b[5]);tr.position.set(b[0],b[1],b[2]);tr.rotation.z=b[6];barn.add(tr);
+    });
+    var fr=mesh(geo.box,wm,false);fr.scale.set(1.12,.07,.07);fr.position.set(0,1.07,1.25);barn.add(fr);
+    var win=mesh(geo.cyl,mat(0xfff3e0,.8),false);win.scale.set(.2,.05,.2);win.rotation.x=Math.PI/2;win.position.set(0,1.45,1.22);barn.add(win);
+    scene.add(barn);
+    // ไซโล
+    var silo=mesh(geo.cyl,mat(0xcfd8dc,.5));silo.scale.set(.6,2.4,.6);silo.position.set(2.2,1.2,-6.9);scene.add(silo);
+    var sr=mesh(geo.cone,mat(0xb8332a,.7));sr.scale.set(.7,.7,.7);sr.position.set(2.2,2.75,-6.9);scene.add(sr);
+
+    // ต้นไม้
+    function tree(x,z,s,apples){
+      var g=new THREE.Group();g.position.set(x,0,z);
+      var tr=mesh(geo.cyl,mat(0x7a5230,1));tr.scale.set(.17*s,1.5*s,.17*s);tr.position.y=.75*s;g.add(tr);
+      [[0,2.1,0,1.15,0x3a9a45],[.7,1.8,.2,.8,0x2f8a3d],[-.65,1.85,-.1,.85,0x45a84e],[.1,2.7,0,.8,0x3a9a45]].forEach(function(c){
+        var b=mesh(geo.sphere,mat(c[4],.9));b.scale.setScalar(c[3]*s);b.position.set(c[0]*s,c[1]*s,c[2]*s);g.add(b);
+      });
+      if(apples){[[.5,2.1,.9],[-.6,1.9,.8],[.2,2.5,1.0],[-.2,1.7,1.0]].forEach(function(a){
+        var ap=mesh(geo.sphere,mat(0xe53935,.4));ap.scale.setScalar(.11*s);ap.position.set(a[0]*s,a[1]*s,a[2]*s);g.add(ap);});}
+      scene.add(g);
+    }
+    tree(-5.4,-3.8,1.1,true);tree(5.8,-4.2,1.2,false);tree(-7.6,.4,1,false);tree(7.8,1.2,.95,true);tree(3.8,-7.4,1.1,false);tree(-4.2,-8,1.2,false);
+
+    // รั้วไม้
+    var wood=mat(0xb07a42,.9);
+    for(var x=-6;x<=6;x+=1.2){var p=mesh(geo.box,wood);p.scale.set(.14,.9,.14);p.position.set(x,.45,-3.7);scene.add(p);}
+    [.35,.7].forEach(function(y){var r=mesh(geo.box,wood);r.scale.set(12.4,.09,.07);r.position.set(0,y,-3.7);scene.add(r);});
+    // ฟางก้อนกลม
+    [[-3.6,-5.0],[4.4,-5.4]].forEach(function(h){
+      var hs=mesh(geo.cyl,mat(0xdcb85a,1));hs.scale.set(.55,.6,.55);hs.rotation.z=Math.PI/2;hs.position.set(h[0],.55,h[1]);scene.add(hs);
+    });
+    // ดอกไม้เล็กๆ
+    var fc=[0xff6f91,0xffd23d,0xffffff,0xb388ff];
+    for(var i=0;i<40;i++){
+      var fx=(Math.random()*18-9),fz=Math.random()*6+3.5; if(Math.abs(fx)<1.6&&fz<5.2) continue;
+      var fl=mesh(geo.sphere,mat(fc[i%4],.6),false);fl.scale.setScalar(.07);fl.position.set(fx,.08,fz);scene.add(fl);
+    }
+  }
+
+  function buildPlots(){
+    var soilTex=texSoil(),wood=mat(0xa9743a,.9);
+    for(var r=0;r<2;r++)for(var c=0;c<3;c++){
+      var x=(c-1)*2.9,z=r===0?-1.3:1.9;
+      var g=new THREE.Group();g.position.set(x,0,z);
+      var sm=new THREE.MeshStandardMaterial({map:soilTex,roughness:1,color:0xffffff});
+      var soil=mesh(geo.box,sm);soil.scale.set(2.4,.34,2.2);soil.position.y=.17;soil.receiveShadow=true;g.add(soil);
+      [[0,.22,1.14,2.66,.44,.14],[0,.22,-1.14,2.66,.44,.14],[1.27,.22,0,.14,.44,2.4],[-1.27,.22,0,.14,.44,2.4]].forEach(function(f){
+        var b=mesh(geo.box,wood);b.scale.set(f[3],f[4],f[5]);b.position.set(f[0],f[1],f[2]);g.add(b);
+      });
+      var anchor=new THREE.Group();anchor.position.y=.34;g.add(anchor);
+      scene.add(g);
+      plots.push({x:x,z:z,g:g,anchor:anchor,soilMat:sm,sprout:null,plant:null,key:'mango'});
+    }
+  }
+  function buildExtras(){
+    // ตะกร้า
+    basket=new THREE.Group();basket.position.set(BX,0,BZ);
+    var wk=new THREE.MeshStandardMaterial({map:texWicker(),roughness:.9,side:THREE.DoubleSide});
+    var body=new THREE.Mesh(new THREE.CylinderGeometry(.9,.68,.72,28,1,true),wk);body.position.y=.36;body.castShadow=true;basket.add(body);
+    var bot=new THREE.Mesh(new THREE.CylinderGeometry(.68,.68,.05,24),wk);bot.position.y=.03;basket.add(bot);
+    var rim=new THREE.Mesh(new THREE.TorusGeometry(.9,.05,8,28),new THREE.MeshStandardMaterial({color:0x8f5f22,roughness:.8}));rim.rotation.x=Math.PI/2;rim.position.y=.72;basket.add(rim);
+    var hd=new THREE.Mesh(new THREE.TorusGeometry(.9,.045,8,24,Math.PI),new THREE.MeshStandardMaterial({color:0x8f5f22,roughness:.8}));hd.position.y=.72;hd.rotation.y=Math.PI/2;basket.add(hd);
+    scene.add(basket);
+    // กรอบเรืองแสงแปลงที่กำลังทำ
+    frameMat=new THREE.MeshBasicMaterial({color:0xffd23d,transparent:true,opacity:.9});
+    frame=new THREE.Group();
+    [[0,.5,1.32,2.95,.09,.1],[0,.5,-1.32,2.95,.09,.1],[1.47,.5,0,.1,.09,2.75],[-1.47,.5,0,.1,.09,2.75]].forEach(function(f){
+      var b=new THREE.Mesh(geo.box,frameMat);b.scale.set(f[3],f[4],f[5]);b.position.set(f[0],f[1],f[2]);frame.add(b);
+    });
+    frame.visible=false;scene.add(frame);
+    arrow=new THREE.Mesh(new THREE.ConeGeometry(.28,.55,16),new THREE.MeshBasicMaterial({color:0xffd23d}));
+    arrow.rotation.x=Math.PI;arrow.visible=false;scene.add(arrow);
+    // บัวรดน้ำ
+    canG=new THREE.Group();
+    var cm=mat(0x3b82f6,.35);
+    var cb=mesh(geo.cyl,cm);cb.scale.set(.32,.42,.32);canG.add(cb);
+    var sp=mesh(geo.cyl,cm);sp.scale.set(.05,.55,.05);sp.position.set(-.42,.15,0);sp.rotation.z=.9;canG.add(sp);
+    var rose=mesh(geo.cone,mat(0x2563eb,.35));rose.scale.set(.13,.1,.13);rose.position.set(-.64,.33,0);rose.rotation.z=.9+Math.PI/2*0;canG.add(rose);
+    var hdl=new THREE.Mesh(new THREE.TorusGeometry(.22,.04,8,16,Math.PI),cm);hdl.position.set(.32,.05,0);hdl.rotation.z=-Math.PI/2;canG.add(hdl);
+    canG.visible=false;scene.add(canG);
+  }
+
+  /* ---------- กล้อง ---------- */
+  var FOCUS=[];
+  function fit(){
+    var w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
+    var tgt=new THREE.Vector3(0,.5,.8),pitch=22*Math.PI/180,v=new THREE.Vector3();
+    for(var d=6;d<=44;d+=.4){
+      camera.position.set(0,tgt.y+Math.sin(pitch)*d,tgt.z+Math.cos(pitch)*d);
+      camera.lookAt(tgt);camera.updateMatrixWorld();
+      var ok=true;
+      for(var i=0;i<FOCUS.length;i++){v.copy(FOCUS[i]).project(camera);if(Math.abs(v.x)>.96||Math.abs(v.y)>.96){ok=false;break;}}
+      if(ok)break;
+    }
+  }
+  function resize(){
+    if(!renderer)return;
+    var w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
+    renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();fit();
+  }
+
+  /* ---------- วนเรนเดอร์ ---------- */
+  function loop(now){
+    requestAnimationFrame(loop);
+    if(tweens.length){
+      var keep=[];
+      for(var i=0;i<tweens.length;i++){
+        var tw=tweens[i],p=Math.min(1,(now-tw.t0)/tw.ms);
+        try{tw.fn(tw.ease(p));}catch(e){}
+        if(p>=1)tw.res();else keep.push(tw);
+      }
+      tweens=keep;
+    }
+    if(frame.visible){frameMat.opacity=.7+.3*Math.sin(now/220);arrow.position.y=2.5+Math.sin(now/260)*.18;}
+    renderer.render(scene,camera);
+  }
+
+  /* ---------- API ---------- */
+  R.init=function(st){
+    THREE=window.THREE;
+    if(!THREE)return false;
+    try{
+      stage=st;
+      renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+      renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+      renderer.setClearColor(0xcdeeff,0);
+      stage.appendChild(renderer.domElement);
+      scene=new THREE.Scene();scene.fog=new THREE.Fog(0xcdeeff,18,52);
+      camera=new THREE.PerspectiveCamera(46,1,.1,220);
+      geo.sphere=new THREE.SphereGeometry(1,20,14);
+      geo.box=new THREE.BoxGeometry(1,1,1);
+      geo.cyl=new THREE.CylinderGeometry(1,1,1,20);
+      geo.cone=new THREE.ConeGeometry(1,1,14);
+      [-4.2,4.2].forEach(function(x){[0,2.1].forEach(function(y){[-2.7,4.6].forEach(function(z){FOCUS.push(new THREE.Vector3(x,y,z));});});});
+      buildWorld();buildPlots();buildExtras();
+      resize();
+      if(window.ResizeObserver){new ResizeObserver(resize).observe(stage);}
+      window.addEventListener('resize',resize);
+      renderer.render(scene,camera);
+      requestAnimationFrame(loop);
+      return true;
+    }catch(e){
+      try{if(renderer&&renderer.domElement.parentNode)renderer.domElement.parentNode.removeChild(renderer.domElement);}catch(_){}
+      return false;
+    }
+  };
+  function clearPlot(p){
+    if(p.plant){p.anchor.remove(p.plant.g);p.plant=null;}
+    if(p.sprout){p.anchor.remove(p.sprout);p.sprout=null;}
+    p.soilMat.color.setRGB(1,1,1);p.anchor.rotation.z=0;
+  }
+  function sprout(p){p.sprout=sproutNew();p.anchor.add(p.sprout);}
+  R.reset=function(){
+    plots.forEach(function(p){clearPlot(p);sprout(p);});
+    heap.forEach(function(m){basket.remove(m);});heap=[];heapN=0;
+    frame.visible=false;arrow.visible=false;
+  };
+  R.setActive=function(i){
+    var p=plots[i];frame.position.set(p.x,0,p.z);frame.visible=true;
+    arrow.position.set(p.x,2.5,p.z);arrow.visible=true;
+  };
+  R.assign=function(i,key){plots[i].key=key;};
+  R.water=function(i){
+    var p=plots[i],can=canG;
+    can.visible=true;can.position.set(p.x+1.15,2.3,p.z+.2);can.scale.setScalar(.01);can.rotation.z=0;
+    var drops=[],start=new THREE.Vector3(),dm=new THREE.MeshBasicMaterial({color:0x5ec8ff,transparent:true,opacity:.9});
+    return tween(260,function(t){can.scale.setScalar(.01+t);})
+    .then(function(){return tween(320,function(t){can.rotation.z=t*.6;});})
+    .then(function(){
+      can.updateMatrixWorld(true);start.set(-.66,.3,0);can.localToWorld(start);
+      for(var k=0;k<18;k++){var d=new THREE.Mesh(geo.sphere,dm);d.scale.setScalar(.06);d.visible=false;
+        d.userData={dx:(Math.random()-.5)*.5,dz:(Math.random()-.5)*.5,delay:k*38};scene.add(d);drops.push(d);}
+      var tgtY=p.anchor.position.y+.1;
+      return Promise.all([
+        tween(900,function(t){
+          var tm=t*900;
+          drops.forEach(function(d){
+            var l=(tm-d.userData.delay)/420;
+            if(l<=0||l>=1){d.visible=false;return;}
+            d.visible=true;
+            d.position.set(start.x+(p.x-start.x)*l*.7+d.userData.dx*l,start.y-(start.y-tgtY)*l*l,start.z+(p.z-start.z)*l*.7+d.userData.dz*l);
+          });
+        },function(t){return t;}),
+        tween(900,function(t){var c=1-.38*t;p.soilMat.color.setRGB(c,c,c);},function(t){return t;})
+      ]);
+    })
+    .then(function(){drops.forEach(function(d){scene.remove(d);});
+      return tween(260,function(t){can.rotation.z=.6*(1-t);can.scale.setScalar(1.01-t);});})
+    .then(function(){can.visible=false;});
+  };
+  R.grow=function(i){
+    var p=plots[i];
+    if(p.sprout){p.anchor.remove(p.sprout);p.sprout=null;}
+    var pl=plantNew(p.key);p.plant=pl;p.anchor.add(pl.g);pl.g.scale.setScalar(.01);
+    return tween(650,function(t){pl.g.scale.setScalar(Math.max(.01,PS*t));},backOut);
+  };
+  function addHeap(col){
+    var slot=heapN%16;heapN++;
+    var m=heap[slot];
+    if(!m){m=mesh(geo.sphere,mat(col,.5),false);m.scale.setScalar(.18);
+      var layer=Math.floor(slot/6),idx=slot%6,a=idx/6*Math.PI*2+layer*.6,r=.42-layer*.12;
+      m.position.set(Math.cos(a)*r,.5+layer*.15,Math.sin(a)*r);basket.add(m);heap[slot]=m;}
+    else{m.material=mat(col,.5);}
+  }
+  R.harvest=function(i){
+    var p=plots[i],pl=p.plant;if(!pl)return Promise.resolve();
+    p.plant=null;
+    var fruit=pl.fruit;pl.g.updateMatrixWorld(true);scene.attach(fruit);
+    var p0=fruit.position.clone(),s0=fruit.scale.x,p1=new THREE.Vector3(BX,1.0,BZ),mid=p0.clone().lerp(p1,.5);mid.y+=2.4;
+    var f1=tween(850,function(t){
+      var a=1-t;
+      fruit.position.set(a*a*p0.x+2*a*t*mid.x+t*t*p1.x,a*a*p0.y+2*a*t*mid.y+t*t*p1.y,a*a*p0.z+2*a*t*mid.z+t*t*p1.z);
+      fruit.scale.setScalar(s0*(1-.6*t));fruit.rotation.y=t*Math.PI*3;
+    }).then(function(){
+      scene.remove(fruit);addHeap(pl.col);
+      return tween(260,function(t){var s=1+.1*Math.sin(Math.PI*t);basket.scale.set(s,1/s*1.0+(s-1)*0,s);});
+    });
+    var f2=tween(500,function(t){pl.g.scale.setScalar(Math.max(.001,PS*(1-t)));}).then(function(){p.anchor.remove(pl.g);});
+    return Promise.all([f1,f2]);
+  };
+  R.reseed=function(i){var p=plots[i];clearPlot(p);sprout(p);};
+  R.wrong=function(i){
+    frameMat.color.setHex(0xff4d4d);
+    setTimeout(function(){frameMat.color.setHex(0xffd23d);},420);
+    var p=plots[i];if(!p)return;
+    tween(320,function(t){p.anchor.rotation.z=Math.sin(t*Math.PI*6)*(1-t)*.12;if(t>=1)p.anchor.rotation.z=0;},function(t){return t;});
+  };
+  return R;
+})();
+
+/* =====================================================================
+   ฟาร์มสำรอง (กรณีอุปกรณ์ไม่รองรับ 3D) — เกมยังเล่นได้ตามปกติ
+   ===================================================================== */
+var Flat=(function(){
+  var els=[],keys=[],R={};
+  R.init=function(st){
+    var f=document.createElement('div');f.className='field';
+    for(var i=0;i<N_PLOTS;i++){
+      var p=document.createElement('div');p.className='plot';
+      var pl=document.createElement('span');pl.className='plant emoji';pl.textContent='🌱';
+      var so=document.createElement('div');so.className='soil';
+      p.appendChild(pl);p.appendChild(so);f.appendChild(p);els.push(p);keys.push('mango');
+    }
+    st.appendChild(f);return true;
+  };
+  R.reset=function(){els.forEach(function(p){p.firstChild.textContent='🌱';p.classList.remove('active');});};
+  R.setActive=function(i){els.forEach(function(p,k){p.classList.toggle('active',k===i);});};
+  R.assign=function(i,k){keys[i]=k;};
+  R.water=function(){return sleep(500);};
+  R.grow=function(i){els[i].firstChild.textContent=cropByKey(keys[i]).e;return sleep(350);};
+  R.harvest=function(i){els[i].firstChild.textContent='';return sleep(400);};
+  R.reseed=function(i){els[i].firstChild.textContent='🌱';};
+  R.wrong=function(){};
+  return R;
+})();
+
+var farm=null;
+
+/* =====================================================================
+   สถานะเกม
+   ===================================================================== */
+var S=null, tickId=null;
+
+function newState(){
+  return {
+    gen:(S?S.gen:0)+1, left:GAME_SECONDS, deadline:0, paused:false, pauseAt:0,
+    score:0, harvest:0, right:0, wrong:0, lost:0, crops:{},
+    level:1, qInLevel:0, levelQs:[], levelsDone:0, lvFirst:0, lvMiss:0, lvLost:0,
+    usedQ:{}, qn:0, cur:null, locked:true, over:false, log:[], plot:0, plotCrop:[]
+  };
+}
+
+/* ---------- HUD ---------- */
+function updateHud(){
+  $('cLevel').textContent=S.level; $('cScore').textContent=S.score; $('cHarv').textContent=S.harvest;
+  $('cRight').textContent=S.right; $('cWrong').textContent=S.wrong; $('basketN').textContent=S.harvest;
+  $('ribbon').textContent=LVICON[Math.min(S.level,6)]+' ด่าน '+S.level;
+}
+function updateTimer(){
+  $('tt').textContent=fmt(S.left);
+  $('barfill').style.width=(S.left/GAME_SECONDS*100)+'%';
+  var low=S.left<=60;
+  $('timer').classList.toggle('low',low); $('bar').classList.toggle('low',low);
+  $('timer').classList.toggle('paused',S.paused);
+}
+function renderPips(){
+  var h='';
+  for(var i=0;i<PER_LEVEL;i++){h+='<i class="'+(i<S.qInLevel?'done':i===S.qInLevel?'cur':'')+'"></i>';}
+  $('pips').innerHTML=h;
+}
+function floatText(el,txt){
+  var s=document.createElement('span');s.className='float';s.textContent=txt;el.appendChild(s);
+  setTimeout(function(){s.remove();},950);
+}
+
+/* ---------- ด่าน ---------- */
+function startLevel(){
+  S.levelQs=planLevel(S.level,S.usedQ);
+  S.qInLevel=0; S.lvFirst=0; S.lvMiss=0; S.lvLost=0;
+  updateHud(); nextQuestion();
+}
+function nextQuestion(){
+  if(S.over) return;
+  var spec=S.levelQs[S.qInLevel];
+  S.qn++;
+  var entry={lv:S.level,n:S.qInLevel+1,q:spec.q,ans:spec.a,exp:spec.exp,mistakes:0,done:false};
+  S.log.push(entry);
+  S.cur={spec:spec,opts:buildOptions(spec),entry:entry,tried:{}};
+  S.locked=false;
+  renderQuestion();
+}
+function renderQuestion(){
+  var c=S.cur;
+  $('qno').textContent='ข้อที่ '+(S.qInLevel+1)+'/'+PER_LEVEL;
+  $('lvbadge').textContent=LVICON[Math.min(S.level,6)]+' ด่าน '+S.level+' · '+DIFF[Math.min(S.level,6)];
+  renderPips();
+  $('qtext').textContent=c.spec.q;
+  var wrap=$('opts'); wrap.innerHTML='';
+  var long=c.opts.some(function(o){return o.text.length>14;});
+  wrap.className='opts'+(long?' long':'');
+  c.opts.forEach(function(o,i){
+    var b=document.createElement('button');
+    b.type='button'; b.className='opt'; b.dataset.i=i;
+    b.innerHTML='<span class="ltr">'+LETTERS[i]+'</span><span>'+esc(o.text)+'</span>';
+    wrap.appendChild(b);
+  });
+  setFb('info','เลือกคำตอบเพื่อรดน้ำต้นกล้า','ตอบถูก +1 คะแนน · ตอบผิด −'+PENALTY+' คะแนน');
+  farm.setActive(S.plot);
+}
+function setFb(kind,title,sub){
+  var fb=$('fb'); fb.className='fb'+(kind==='good'?' good':kind==='bad'?' bad':'');
+  fb.innerHTML='<strong>'+esc(title)+'</strong>'+(sub?'<span>'+esc(sub)+'</span>':'');
+}
+
+function answer(i){
+  if(!S||S.over||S.paused||S.locked||!S.cur) return;
+  var c=S.cur, o=c.opts[i]; if(!o||c.tried[i]) return;
+  var btn=$('opts').children[i];
+  if(o.ok){
+    S.locked=true; c.entry.done=true;
+    btn.classList.add('right');
+    Array.prototype.forEach.call($('opts').children,function(b){b.disabled=true;});
+    S.score++; S.harvest++; S.right++;
+    if(c.entry.mistakes===0) S.lvFirst++;
+    var crop=S.plotCrop[S.plot];
+    S.crops[crop.k]=(S.crops[crop.k]||0)+1;
+    S.qInLevel++;
+    if(S.qInLevel>=PER_LEVEL) S.levelsDone++;
+    updateHud(); renderPips();
+    setFb('good',pick(GOOD)+' '+crop.e,c.entry.exp);
+    harvestSequence();
+  }else{
+    c.tried[i]=true; c.entry.mistakes++; S.wrong++; S.lvMiss++;
+    var cut=Math.min(PENALTY,S.score); S.score-=cut; S.lost+=cut; S.lvLost+=cut;
+    btn.classList.add('wrong'); btn.disabled=true;
+    updateHud();
+    var chip=$('chipScore'); chip.classList.add('hit'); floatText(chip,'−'+PENALTY);
+    setTimeout(function(){chip.classList.remove('hit');},450);
+    farm.wrong(S.plot);
+    setFb('bad',pick(BAD)+' (−'+PENALTY+' คะแนน'+(cut<PENALTY?' คะแนนไม่ต่ำกว่า 0':'')+')','💡 คำใบ้: '+c.spec.hint);
+  }
+}
+
+async function harvestSequence(){
+  var g=S.gen, idx=S.plot;
+  await guard(farm.water(idx),3500); if(S.gen!==g) return;
+  await guard(farm.grow(idx),2000);  if(S.gen!==g) return;
+  await sleep(150);                  if(S.gen!==g) return;
+  await guard(farm.harvest(idx),3500); if(S.gen!==g) return;
+  S.plotCrop[idx]=pick(CROPS); farm.assign(idx,S.plotCrop[idx].k); farm.reseed(idx);
+  if(S.over) return;
+  S.plot=(idx+1)%N_PLOTS;
+  if(S.qInLevel>=PER_LEVEL){showLevelComplete(); return;}
+  nextQuestion();
+}
+
+function showLevelComplete(){
+  S.paused=true; S.pauseAt=Date.now(); updateTimer();
+  var f=S.lvFirst, stars=f>=9?3:f>=7?2:1;
+  $('lvTitle').textContent='🎉 ผ่านด่าน '+S.level+' แล้ว!';
+  $('lvStars').innerHTML=[1,2,3].map(function(n){return '<span class="'+(n<=stars?'on':'')+'">★</span>';}).join('');
+  $('lvStars').setAttribute('aria-label','ได้ '+stars+' ดาว จาก 3 ดาว');
+  $('lvFirst').textContent=f+'/'+PER_LEVEL; $('lvMiss').textContent=S.lvMiss; $('lvLost').textContent=S.lvLost;
+  $('lvScore').textContent=S.score;
+  $('lvMsg').textContent=stars===3?'เก่งสุดๆ! แทบไม่พลาดเลย':stars===2?'ทำได้ดีมาก! อีกนิดเดียวก็เต็มแล้ว':'ผ่านแล้ว! ด่านต่อไปลองอ่านคำใบ้ให้ดีๆ นะ';
+  var nl=S.level+1;
+  $('lvNext').textContent='ด่านต่อไป: ด่าน '+nl+' ระดับ “'+DIFF[Math.min(nl,6)]+'”';
+  $('lvOv').hidden=false; $('lvOv').scrollTop=0;
+  setTimeout(function(){$('lvBtn').focus({preventScroll:true});},50);
+}
+function nextLevel(){
+  if(!S||S.over||!S.paused) return;
+  S.deadline+=Date.now()-S.pauseAt; S.paused=false;
+  $('lvOv').hidden=true;
+  S.level++; updateTimer(); startLevel();
+}
+
+/* ---------- เริ่ม / จบเกม ---------- */
+function startGame(){
+  S=newState();
+  $('startOv').hidden=true; $('endOv').hidden=true; $('lvOv').hidden=true;
+  farm.reset();
+  for(var i=0;i<N_PLOTS;i++){S.plotCrop[i]=pick(CROPS); farm.assign(i,S.plotCrop[i].k);}
+  updateHud(); updateTimer();
+  S.deadline=Date.now()+GAME_SECONDS*1000;
+  clearInterval(tickId); tickId=setInterval(tick,250);
+  startLevel();
+}
+function tick(){
+  if(!S||S.over||S.paused) return;
+  var left=Math.max(0,Math.ceil((S.deadline-Date.now())/1000));
+  if(left!==S.left){S.left=left; updateTimer();}
+  if(left<=0) endGame();
+}
+function endGame(){
+  if(S.over) return;
+  S.over=true; S.locked=true; S.paused=false; clearInterval(tickId);
+  S.left=0; updateTimer();
+  Array.prototype.forEach.call($('opts').children,function(b){b.disabled=true;});
+  buildSummary();
+  $('lvOv').hidden=true; $('endOv').hidden=false; $('endOv').scrollTop=0;
+  var b=$('againBtn'); setTimeout(function(){b.focus({preventScroll:true});},50);
+}
+function buildSummary(){
+  var tot=S.right+S.wrong, acc=tot?Math.round(S.right/tot*100):0;
+  $('sScore').textContent=S.score; $('sHarv').textContent=S.harvest;
+  $('sRight').textContent=S.right; $('sWrong').textContent=S.wrong; $('sAcc').textContent=acc+'%';
+  $('sLv').textContent=S.levelsDone; $('sLost').textContent=S.lost;
+  var cr='';
+  CROPS.forEach(function(c){var n=S.crops[c.k]; if(n) cr+='<span><span class="emoji">'+c.e+'</span> '+c.n+' × '+n+'</span>';});
+  $('sCrops').innerHTML=cr||'<span>ยังไม่ได้เก็บผลผลิต ลองเล่นอีกรอบนะ</span>';
+  var msg;
+  if(S.levelsDone>=3&&acc>=75) msg='สุดยอดเกษตรกรคำนาม! ไปได้ไกลถึงด่าน '+S.level+' เลย';
+  else if(S.right>=8) msg='เก่งมาก! อ่านเฉลยด้านล่างแล้วลองเล่นอีกรอบเพื่อไปให้ไกลกว่าเดิม';
+  else msg='ไม่เป็นไรนะ การลองผิดลองถูกคือการเรียนรู้ อ่านเฉลยแล้วมาปลูกกันใหม่!';
+  $('sCheer').textContent=msg;
+  setTab('all');
+}
+function setTab(which){
+  $('tabAll').setAttribute('aria-pressed',which==='all');
+  $('tabMiss').setAttribute('aria-pressed',which==='miss');
+  var html='';
+  S.log.forEach(function(e){
+    var review=e.mistakes>0||!e.done;
+    if(which==='miss'&&!review) return;
+    var cls,st;
+    if(!e.done){cls='pending'; st='⏳ ยังไม่ได้ตอบถูกเมื่อหมดเวลา'+(e.mistakes?' (ผิด '+e.mistakes+' ครั้ง)':'');}
+    else if(e.mistakes>0){cls='retry'; st='🔁 ตอบถูกหลังลองใหม่ (ผิด '+e.mistakes+' ครั้ง)';}
+    else{cls='ok'; st='✅ ตอบถูกตั้งแต่ครั้งแรก';}
+    html+='<div class="rv '+cls+'"><div class="st">ด่าน '+e.lv+' ข้อ '+e.n+' · '+st+'</div><div class="q">'+esc(e.q)+'</div><div class="a">คำตอบ: <b>'+esc(e.ans)+'</b></div><div class="e">'+esc(e.exp)+'</div></div>';
+  });
+  if(!html) html='<p>ไม่มีข้อที่ต้องทบทวน เก่งมาก!</p>';
+  $('review').innerHTML=html;
+}
+
+/* =====================================================================
+   เหตุการณ์
+   ===================================================================== */
+$('startBtn').addEventListener('click',startGame);
+$('againBtn').addEventListener('click',startGame);
+$('lvBtn').addEventListener('click',nextLevel);
+$('tabAll').addEventListener('click',function(){setTab('all');});
+$('tabMiss').addEventListener('click',function(){setTab('miss');});
+$('opts').addEventListener('click',function(ev){
+  var b=ev.target.closest('.opt'); if(!b) return;
+  answer(parseInt(b.dataset.i,10));
+});
+document.addEventListener('keydown',function(ev){
+  if(!S||S.over) return;
+  if(ev.ctrlKey||ev.metaKey||ev.altKey) return;
+  if(!$('startOv').hidden||!$('endOv').hidden) return;
+  if(!$('lvOv').hidden){return;}
+  var n=parseInt(ev.key,10);
+  if(n>=1&&n<=4) answer(n-1);
+});
+
+/* เตรียมฉากตอนเปิดหน้าเว็บ */
+S=newState(); S.over=true;
+farm=Farm3D.init($('stage'))?Farm3D:null;
+if(!farm){ $('scene').classList.add('flat'); farm=Flat; farm.init($('stage')); }
+farm.reset();
+updateTimer(); updateHud();
+$('qtext').textContent='พร้อมปลูกหรือยัง?';
+renderPips();
+
+/* ให้ทดสอบชุดคำถามได้จากภายนอก (ไม่กระทบการเล่น) */
+window.__farmTest={planLevel:planLevel,buildOptions:buildOptions};
+})();
+</script>
+</body>
+</html>
